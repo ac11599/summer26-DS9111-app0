@@ -50,6 +50,17 @@ if page == "Introduction 📘":
     if st.button("Show Describe Table"):
         st.dataframe(df.describe())
 
+    st.header("📑 Automated Report")
+    if st.button("Generate Report"):
+        with st.spinner("Generating report..."):
+            profile = ProfileReport(
+                df, title="Ads Revenue Report", explorative=True, minimal=True)
+            st_profile_report(profile)
+
+        export = profile.to_html()
+        st.download_button(label="📥 Download full Report", data=export,
+                           file_name="ads_revenue_report.html", mime='text/html')
+
 # --- Visualization Page ---
 elif page == "Visualization 📊":
 
@@ -103,19 +114,6 @@ elif page == "Visualization 📊":
         sns.heatmap(df_numeric.corr(), annot=True,
                     fmt=".2f", cmap='coolwarm', ax=ax_corr)
         st.pyplot(fig_corr)
-
-# --- Automated Report Page  (TO BE WORKED ON) ---
-elif page == "Automated Report 📑":
-    st.title("03 Automated Report")
-    if st.button("Generate Report"):
-        with st.spinner("Generating report..."):
-            profile = ProfileReport(
-                df, title="Ads Revenue Report", explorative=True, minimal=True)
-            st_profile_report(profile)
-
-        export = profile.to_html()
-        st.download_button(label="📥 Download full Report", data=export,
-                           file_name="ads_revenue_report.html", mime='text/html')
 
 # --- Prediction Page (TO BE WORKED ON) ---
 elif page == "Prediction 🔮":
