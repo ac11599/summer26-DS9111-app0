@@ -21,7 +21,7 @@ st.set_page_config(
     page_icon="🌐",)
 st.sidebar.title("Ad Revenue 🌐")
 page = st.sidebar.selectbox("Select Page", [
-                            "Introduction 📘", "Visualization 📊", "Automated Report 📑", "Prediction 🔮"])
+                            "Introduction 📘", "Visualization 📊", "Prediction 🔮"])
 
 st.image("ad_revenue.jpg")
 
