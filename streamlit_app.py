@@ -53,13 +53,13 @@ if page == "Introduction 📘":
     st.header("📑 Automated Report")
     if st.button("Generate Report"):
         with st.spinner("Generating report..."):
-            profile = ProfileReport(
+           profile = ProfileReport(
                 df, title="Ads Revenue Report", explorative=True, minimal=True)
-            st_profile_report(profile)
+        st_profile_report(profile)
 
         export = profile.to_html()
         st.download_button(label="📥 Download full Report", data=export,
-                           file_name="ads_revenue_report.html", mime='text/html')
+                          file_name="ads_revenue_report.html", mime='text/html')
 
 # --- Visualization Page ---
 elif page == "Visualization 📊":
@@ -117,8 +117,8 @@ elif page == "Visualization 📊":
 
 # --- Prediction Page (TO BE WORKED ON) ---
 elif page == "Prediction 🔮":
-    st.title("04 Prediction (with Linear Regression) 🔮")
-
+    st.title("03 Prediction (with Linear Regression) 🔮")
+    st.markdown(""" ### What are we predicting ? Using campaign inputs (impressions, clicks, ad spend), we train a Linear Regression model to predict revenue. """)
     # --- Data Preprocessing ---
 
     # Remove missing values
@@ -129,6 +129,10 @@ elif page == "Prediction 🔮":
     features_selection = st.sidebar.multiselect(
         "Select features (X)", ["impressions", "clicks", "ad_spend"], default=["impressions", "clicks", "ad_spend"])
     target = "revenue"
+    #makes sure something is selected
+    if not features_selection:
+        st.warning("Please select AT LEAST ONE feature from the sidebar.")
+        st.stop()
 
     X = df[features_selection]
     y = df[target]
@@ -140,7 +144,9 @@ elif page == "Prediction 🔮":
     # st.dataframe(y.head())
 
     # split into train and test set
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    train_size = st.sidebar.slider("Training set size", 0.50, 0.95, 0.80, step=0.05)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1-train_size, random_state=42)
 
     # --- Model ---
 
@@ -154,17 +160,31 @@ elif page == "Prediction 🔮":
     predictions = model.predict(X_test)
 
     # Evaluation
-    if selected_metrics:
-        st.header("Metrics")
-        if "Mean Absolute Error (MAE)" in selected_metrics:
-            mae = metrics.mean_absolute_error(y_test, predictions)
-            st.write(f"- **MAE**: ${mae:,.2f}")
-        if "Mean Squared Error (MSE)" in selected_metrics:
-            mse = metrics.mean_squared_error(y_test, predictions)
-            st.write(f"- **MSE**: ${mse:,.2f}")
-        if "R² Score" in selected_metrics:
-            r2 = metrics.r2_score(y_test, predictions)
-            st.write(f"- **R2**: {r2:,.3f}")
+    
+    st.header("📊 Model Performance")
+    col_info1, col_info2, col_info3 = st.columns(3)
+    col_info1.metric("Training rows", f"{len(X_train):,}")
+    col_info2.metric("Test rows", f"{len(X_test):,}")
+    col_info3.metric("Features used", len(features_selection))
+    st.markdown(" ")
+
+    mae = metrics.mean_absolute_error(y_test, predictions)
+    mse = metrics.mean_squared_error(y_test, predictions)
+    r2  = metrics.r2_score(y_test, predictions)
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("MAE", f"${mae:,.2f}")
+    col2.metric("MSE", f"${mse:,.2f}")
+    col3.metric("R² Score", f"{r2:.3f}")
+
+    if r2 >= 0.85:
+        st.success(f" Strong model — explains {r2*100:.1f}% of revenue variance")
+    elif r2 >= 0.60:
+        st.info(f"ℹ Decent model — explains {r2*100:.1f}% of revenue variance")
+    else:
+        st.warning(f" Weak model — only explains {r2*100:.1f}% of revenue variance")
+
+    st.markdown("---")
 
     st.header("Actual vs. Predicted Revenue")
     fig, ax = plt.subplots()
@@ -175,3 +195,25 @@ elif page == "Prediction 🔮":
     ax.set_ylabel("Predicted")
     ax.set_title("Actual vs Predicted")
     st.pyplot(fig)
+
+    st.markdown("---")
+    st.header("🏆 Which input drives revenue the most?")
+    st.markdown("Each bar shows how much that variable influences predicted revenue.")
+
+    coef_df = pd.DataFrame({
+        "Feature": features_selection,
+        "Coefficient": model.coef_
+    }).sort_values("Coefficient", ascending=False)
+
+    fig_coef, ax_coef = plt.subplots(figsize=(8, 3))
+    colors = ["#2ecc71" if c > 0 else "#e74c3c" for c in coef_df["Coefficient"]]
+    ax_coef.barh(coef_df["Feature"], coef_df["Coefficient"], color=colors)
+    ax_coef.axvline(0, color="black", linewidth=0.8)
+    ax_coef.set_xlabel("Effect on Revenue per 1-unit increase")
+    ax_coef.set_title("Feature Coefficients (green = positive, red = negative)")
+    st.pyplot(fig_coef)
+    st.caption(f"Model baseline revenue (intercept): ${model.intercept_:,.2f}")
+    
+    st.markdown("---")
+  
+
