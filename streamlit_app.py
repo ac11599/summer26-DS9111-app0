@@ -8,8 +8,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn import metrics
 
-from ydata_profiling import ProfileReport
-from streamlit_pandas_profiling import st_profile_report
+# from ydata_profiling import ProfileReport
+# from streamlit_pandas_profiling import st_profile_report
 
 # dataset
 # https://www.kaggle.com/datasets/desalegngeb/students-exam-scores
@@ -50,16 +50,16 @@ if page == "Introduction 📘":
     if st.button("Show Describe Table"):
         st.dataframe(df.describe())
 
-    st.header("📑 Automated Report")
-    if st.button("Generate Report"):
-        with st.spinner("Generating report..."):
-           profile = ProfileReport(
-                df, title="Ads Revenue Report", explorative=True, minimal=True)
-        st_profile_report(profile)
+    # st.header("📑 Automated Report")
+    # if st.button("Generate Report"):
+    #     with st.spinner("Generating report..."):
+    #        profile = ProfileReport(
+    #             df, title="Ads Revenue Report", explorative=True, minimal=True)
+    #     st_profile_report(profile)
 
-        export = profile.to_html()
-        st.download_button(label="📥 Download full Report", data=export,
-                          file_name="ads_revenue_report.html", mime='text/html')
+    #     export = profile.to_html()
+    #     st.download_button(label="📥 Download full Report", data=export,
+    #                       file_name="ads_revenue_report.html", mime='text/html')
 
 # --- Visualization Page ---
 elif page == "Visualization 📊":
